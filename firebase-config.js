@@ -13,5 +13,5 @@ export default {
   },
 
   // このアプリを使えるGoogleアカウントのメールアドレス（firestore.rules にも同じものを書く）
-  allowedEmails: ["keepsmile.luck7@gmail.com", "partner@example.com"],
+  allowedEmails: ["keepsmile.lucky7@gmail.com", "partner@example.com"],
 };
