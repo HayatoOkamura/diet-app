@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// 減量プラン手帳のデータベースのルール
+// ・ログインした本人だけが、自分の記録（users/自分のID/ 以下）を読み書きできる
+// ・下のリストにあるメールアドレスのGoogleアカウントだけが使える
+// ★ 2つのメールアドレスを、あなたと彼女のGmailアドレスに書き換えてから「公開」してください
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function allowedUser() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['you@example.com', 'partner@example.com'];
+    }
+    match /users/{uid}/{document=**} {
+      allow read, write: if allowedUser() && request.auth.uid == uid;
+    }
+  }
+}

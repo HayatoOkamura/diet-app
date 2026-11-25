@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>減量プラン手帳</title>
+<meta name="theme-color" content="#f2f2f7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+/* VOICE everyday and calm, in the manner of Apple's Health app (the person's request)
+   IDEA a health summary: grouped cards on a grey ground, each with a coloured category label and one large figure
+   PICTURE weight card and checklist on 今日; a PFC donut; the training menu with templates; a weight trend line
+   COLOUR grey / soft charcoal ground, white / slate cards, category colours (purple body, cyan water, green food, orange training)
+   TYPE system UI stack (SF / Hiragino / Noto Sans JP), large bold titles
+   LAYOUT one column up to 600px, large title header with a settings button, translucent bottom tab bar */
+:root{color-scheme:light;--bg:#f2f2f7;--card:#fff;--ink:#1c1c1e;--mute:#6e6e73;--sep:#e3e3e8;--fill:#e8e8ed;--purple:#8e44d8;--blue:#007aff;--green:#1f9d45;--orange:#e66a00;--pink:#ff2d55;--cyan:#0a8fc2;--red:#ff3b30;--shadow:rgba(0,0,0,.16)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#121316;--card:#1d1f24;--ink:#e2e3e8;--mute:#979aa3;--sep:#30333a;--fill:#2a2d34;--purple:#b48ee0;--blue:#6ea4f0;--green:#62c48a;--orange:#e3a066;--pink:#e98399;--cyan:#73c2de;--red:#e9746c;--shadow:rgba(0,0,0,.5)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#121316;--card:#1d1f24;--ink:#e2e3e8;--mute:#979aa3;--sep:#30333a;--fill:#2a2d34;--purple:#b48ee0;--blue:#6ea4f0;--green:#62c48a;--orange:#e3a066;--pink:#e98399;--cyan:#73c2de;--red:#e9746c;--shadow:rgba(0,0,0,.5)}
+body.m-light{color-scheme:light;--bg:#f2f2f7;--card:#fff;--ink:#1c1c1e;--mute:#6e6e73;--sep:#e3e3e8;--fill:#e8e8ed;--purple:#8e44d8;--blue:#007aff;--green:#1f9d45;--orange:#e66a00;--pink:#ff2d55;--cyan:#0a8fc2;--red:#ff3b30;--shadow:rgba(0,0,0,.16)}
+body.m-dark{color-scheme:dark;--bg:#121316;--card:#1d1f24;--ink:#e2e3e8;--mute:#979aa3;--sep:#30333a;--fill:#2a2d34;--purple:#b48ee0;--blue:#6ea4f0;--green:#62c48a;--orange:#e3a066;--pink:#e98399;--cyan:#73c2de;--red:#e9746c;--shadow:rgba(0,0,0,.5)}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:17px/1.45 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",system-ui,sans-serif;overflow-x:clip;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+button:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.in{max-width:600px;margin:0 auto;padding:0 16px}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:18px 0 10px}
+.hd small{display:block;font-size:14px;font-weight:600;color:var(--mute)}
+h1{font-size:34px;line-height:1.1;margin:2px 0 0;font-weight:800;letter-spacing:.01em}
+.gear{width:40px;height:40px;border-radius:20px;background:var(--fill);display:grid;place-items:center;flex:none}
+.gear svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:1.8}
+.sec{font-size:22px;font-weight:800;margin:24px 2px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec small,.sec .lnk{font-size:14px;font-weight:600;color:var(--mute)}
+.sec .lnk{color:var(--blue);min-height:32px}
+.card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:15px;font-weight:700}
+.ch>span{display:flex;align-items:center;gap:6px}
+.ch svg{width:18px;height:18px;fill:currentColor}
+.ch .t{font-weight:500;color:var(--mute);font-size:14px}
+.val{font-size:36px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.unit{font-size:17px;font-weight:600;color:var(--mute);margin-left:3px}
+.sub{font-size:15px;color:var(--mute);margin-top:2px}
+.row2{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:6px}
+.pill{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 14px;border-radius:18px;background:var(--fill);font-size:15px;font-weight:600;white-space:nowrap}
+.pill.o{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
+.pill.bl{color:var(--blue)}
+.segc{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:var(--fill);border-radius:9px;padding:2px;margin-top:10px}
+.segc button{height:34px;border-radius:7px;font-size:14px;font-weight:600}
+.segc button[aria-pressed=true]{background:var(--card);box-shadow:0 1px 3px var(--shadow)}
+.tip{font-size:15px;margin:10px 0 0;color:var(--ink)}
+.group{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.li{display:flex;align-items:center;gap:12px;width:100%;min-height:50px;padding:10px 16px;text-align:left;position:relative;font-size:16px}
+.li+.li::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:1px solid var(--sep)}
+.li .grow{flex:1}
+.li .m{display:block;font-size:13px;color:var(--mute)}
+.li .r{color:var(--mute);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ck{flex:none;width:26px;height:26px;border-radius:13px;border:2px solid var(--sep);display:grid;place-items:center}
+[aria-pressed=true] .ck{background:var(--c,var(--green));border-color:var(--c,var(--green))}
+[aria-pressed=true] .ck::after{content:"";width:10px;height:6px;border:2.5px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.cups{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin-top:10px}
+.cups button{height:44px}
+.cups svg{width:100%;height:100%}
+.donut{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:12px}
+.dwrap{position:relative;aspect-ratio:1;width:min(200px,60vw);margin:0 auto}
+.dwrap svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.dmid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.dmid b{font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.dmid span{font-size:13px;color:var(--mute)}
+.leg{display:grid;gap:12px}
+.leg div{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:2px 10px;align-items:baseline;padding-top:10px;border-top:1px solid var(--sep)}
+.leg i{width:12px;height:12px;border-radius:6px;align-self:center}
+.leg b{font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.leg span{font-size:15px}
+.leg em{grid-column:2/4;font-style:normal;font-size:13px;color:var(--mute)}
+.meal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.meal div{background:var(--fill);border-radius:10px;padding:10px}
+.meal b{display:block;font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meal span{font-size:13px;color:var(--mute)}
+.tl{display:grid;grid-template-columns:4.6em minmax(0,1fr);gap:4px 12px;padding:10px 0}
+.tl+.tl{border-top:1px solid var(--sep)}
+.tl .tt{font-size:17px;font-weight:700;color:var(--green);white-space:nowrap}
+.tl p{margin:2px 0 0;font-size:15px;color:var(--mute)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.chips.wrap{flex-wrap:wrap;overflow:visible}
+.chips button{flex:none;min-height:34px;padding:0 14px;border-radius:17px;background:var(--card);font-size:14px;font-weight:600}
+.chips button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.rec{background:color-mix(in srgb,var(--orange) 12%,var(--card));border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.rec .ch{color:var(--orange)}
+.rec .sub{font-size:14px;margin:2px 0 0}
+.rec ol{margin:6px 0 10px;padding-left:1.3em;font-size:15px}
+.mi{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 12px;padding:10px 8px 12px 16px;position:relative}
+.mi+.mi::before{content:"";position:absolute;top:0;left:54px;right:0;border-top:1px solid var(--sep)}
+.mi .nm{font-size:16px}
+.mi .nm small{display:block;font-size:13px;color:var(--mute)}
+.mi .nm small em{font-style:normal;color:var(--orange)}
+.mi .pill{grid-column:2;grid-row:2;justify-self:start}
+.mi .x{grid-column:3;grid-row:1}
+.x{width:36px;height:36px;border-radius:18px;display:grid;place-items:center;color:var(--mute);font-size:20px;flex:none}
+.add{flex:none;width:28px;height:28px;border-radius:14px;display:grid;place-items:center;background:var(--fill);color:var(--blue);font-size:20px;font-weight:700;line-height:1}
+.add.on{background:var(--orange);color:#fff;font-size:15px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;border-radius:5px;margin-right:4px;vertical-align:1px}
+.empty{padding:16px;color:var(--mute);font-size:15px;text-align:center}
+.gate{min-height:100vh;display:grid;place-content:center;justify-items:center;text-align:center;gap:12px;padding:24px 16px 120px}
+.gate img{width:88px;height:88px;border-radius:22px}
+.gate p{margin:0;max-width:30em;color:var(--mute);font-size:15px}
+.gate .sbtn{max-width:320px}
+.sbtn.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-width:260px}
+.gbtn svg{width:20px;height:20px;background:#fff;border-radius:10px;padding:2px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 0}
+.hs{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x proximity;scrollbar-width:none}
+.tpl{flex:none;width:168px;min-height:112px;background:var(--card);border-radius:14px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:2px;scroll-snap-align:start}
+.tpl b{font-size:17px;line-height:1.3}
+.tpl span{font-size:13px;color:var(--orange);font-weight:700}
+.tpl em{font-style:normal;font-size:13px;color:var(--mute);line-height:1.4}
+.tpl.add{align-items:center;justify-content:center;text-align:center;color:var(--blue);font-size:28px;border:2px dashed var(--sep);background:none}
+.tpl.add span{color:var(--blue);font-size:14px}
+.search{display:block;width:100%;height:44px;border-radius:12px;border:0;background:var(--card);padding:0 14px;font-size:16px;margin-bottom:10px}
+.acc{margin-bottom:8px}
+.acch{display:flex;align-items:center;gap:8px;width:100%;min-height:52px;padding:0 16px;background:var(--card);border-radius:14px;font-size:17px;font-weight:700;text-align:left}
+.acch small{color:var(--mute);font-weight:600;font-size:15px}
+.chev{color:var(--mute);display:inline-block;transition:transform .2s;font-size:20px;width:14px;text-align:center}
+.acch[aria-expanded=true] .chev{transform:rotate(90deg)}
+.acc.open .acch,.acch[aria-expanded=true]{border-radius:14px 14px 0 0}
+.acc .group{border-radius:0 0 14px 14px;border-top:1px solid var(--sep);margin:0}
+.lr{display:flex;align-items:center;position:relative}
+.lr+.lr::before{content:"";position:absolute;top:0;left:48px;right:0;border-top:1px solid var(--sep)}
+.star{flex:none;width:48px;min-height:56px;display:grid;place-items:center}
+.star svg{width:20px;height:20px;fill:none;stroke:var(--mute);stroke-width:1.8;stroke-linejoin:round}
+.star[aria-pressed=true] svg{fill:var(--orange);stroke:var(--orange)}
+.lrb{flex:1;display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px 8px 0;text-align:left;font-size:16px}
+.lrb .grow{flex:1}
+.lrb .m{display:block;font-size:13px;color:var(--mute)}
+.fig{position:relative;height:240px;margin-top:8px}
+.fig svg{position:absolute;inset:0;width:100%;height:100%}
+.fig text{font-size:12px;fill:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.stats b{display:block;font-size:22px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats span{font-size:13px;color:var(--mute)}
+.ph{display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:2px 12px;padding:10px 0}
+.ph+.ph{border-top:1px solid var(--sep)}
+.ph b{font-size:15px}
+.ph .w{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ph p{grid-column:2;margin:0;font-size:14px;color:var(--mute)}
+.ph.now b,.ph.now .w{color:var(--purple)}
+.warn{border-left:4px solid var(--red)}
+.note{font-size:13px;color:var(--mute);margin:6px 4px 0}
+.btn{display:block;width:100%;height:50px;border-radius:12px;background:var(--card);color:var(--blue);font-weight:600;font-size:17px}
+.sbtn{display:block;width:100%;min-height:50px;border-radius:12px;background:var(--card);font-weight:600;font-size:17px;color:var(--blue);margin-top:8px}
+.sbtn.p{background:var(--blue);color:#fff}
+.sbtn.d{color:var(--red)}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--bg);border-radius:16px 16px 0 0;max-width:600px;margin:0 auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .25s ease;max-height:88vh;overflow-y:auto}
+#sheet.on{transform:none}
+.sbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 16px;position:sticky;top:0;background:var(--bg);z-index:3}
+.sbar b{font-size:17px;text-align:center}
+.tb{color:var(--blue);font-size:17px;min-height:44px;justify-self:start}
+.tb.strong{font-weight:700;justify-self:end}
+.wheels{position:relative;display:flex;justify-content:center;gap:6px;margin:8px 16px 12px;background:var(--card);border-radius:14px;padding:0 8px}
+.hl{position:absolute;left:8px;right:8px;top:88px;height:44px;background:var(--fill);border-radius:10px;pointer-events:none}
+.wcol{position:relative;display:flex;align-items:center;z-index:1}
+.wheel{height:220px;width:4.4em;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);overscroll-behavior:contain}
+.wheel::-webkit-scrollbar,.hs::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}
+.wpad{height:88px}
+.opt{height:44px;display:grid;place-items:center;scroll-snap-align:center;font-size:22px;font-variant-numeric:tabular-nums;color:var(--mute);cursor:pointer}
+.opt.sel{color:var(--ink);font-weight:600;font-size:24px}
+.wu{font-size:17px;font-weight:600;margin-left:2px;min-width:2em}
+.sbody{padding:0 16px 8px}
+.sl{font-size:13px;color:var(--mute);margin:16px 16px 6px}
+.li input[type=date]{border:0;background:var(--fill);border-radius:8px;height:36px;padding:0 8px;font-size:16px}
+.tin{width:100%;height:40px;border:0;background:none;font-size:17px}
+#st{position:fixed;left:0;right:0;bottom:calc(76px + env(safe-area-inset-bottom,0px));text-align:center;pointer-events:none;z-index:30}
+#st span{display:inline-block;background:var(--ink);color:var(--bg);padding:6px 14px;border-radius:16px;font-size:14px}
+#st span:empty{display:none}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:9;background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid var(--sep);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav .in{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+nav button{height:62px;display:grid;place-items:center;align-content:center;gap:2px;font-size:11px;font-weight:600;color:var(--mute)}
+nav svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-current=page]{color:var(--blue)}
+@media(max-width:380px){.meal{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#sheet,.chev{transition:none}}
+</style>
+</head>
+<body>
+<main id="view"></main>
+<div id="st"><span></span></div>
+<div id="scrim" hidden data-a="sx"></div>
+<div id="sheet" hidden role="dialog" aria-modal="true"></div>
+<nav id="nav" aria-label="画面" hidden><div class="in">
+<button data-tab="today"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>今日</button>
+<button data-tab="food"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v8l6.5 4.5"/></svg>食事</button>
+<button data-tab="train"><svg viewBox="0 0 24 24"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg>筋トレ</button>
+<button data-tab="log"><svg viewBox="0 0 24 24"><path d="M3 20h18M4 16l5-6 4 4 7-9"/></svg>記録</button>
+</div></nav>
+<script>
+{
+const $=s=>document.querySelector(s);
+const view=$('#view'),sheet=$('#sheet'),scrim=$('#scrim'),root=document.documentElement;
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const addMonths=(s,n)=>{const d=parse(s);d.setMonth(d.getMonth()+n);return ymd(d)};
+const diff=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const isDate=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s);
+const num=v=>typeof v==='number'&&isFinite(v)?v:null;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const range=(a,b,s=1)=>{const r=[];for(let v=a;v<=b+1e-9;v+=s)r.push(Math.round(v*100)/100);return r};
+const today=()=>ymd(new Date());
+const WD='日月火水木金土';
+const fmtDate=s=>{const d=parse(s);return (d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）'};
+const short=s=>{const d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')'};
+const f1=v=>v==null?'—':v.toFixed(1);
+const sgn=v=>(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1);
+const uid36=p=>p+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
+const ICON={
+body:'<svg viewBox="0 0 20 20"><circle cx="10" cy="4" r="2.6"/><path d="M5 8h10l-1.6 4.5H12V19H8v-6.5H6.6z"/></svg>',
+food:'<svg viewBox="0 0 20 20"><path d="M10 4c3-2.5 7 0 7 4.5S13.5 18 10 18 3 13 3 8.5 7 1.5 10 4z"/><path d="M10 4c0-1.5 1-3 2.5-3" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>',
+water:'<svg viewBox="0 0 20 20"><path d="M10 2s6 6.5 6 10.5a6 6 0 0 1-12 0C4 8.5 10 2 10 2z"/></svg>',
+fire:'<svg viewBox="0 0 20 20"><path d="M10 1c1 4 5 5.5 5 10.5A5 5 0 0 1 5 11.5C5 9 6.5 7.5 7 6c.5 2 1.5 3 2.5 3C9.5 6 9 3.5 10 1z"/></svg>'};
+const STAR='<svg viewBox="0 0 24 24"><path d="M12 3.2l2.7 5.5 6 .9-4.35 4.25 1.03 6L12 17l-5.38 2.85 1.03-6L3.3 9.6l6-.9z"/></svg>';
+const SHIFTS={day:'日勤',night:'夜勤',after:'夜勤明け',off:'休み'};
+const GUIDE={
+day:'3食とも、手のひら1枚分のタンパク質＋たっぷりの野菜＋子ども茶碗のごはん。休憩室のお菓子はスルー。',
+night:'夜勤前はおにぎり＋サラダチキン＋味噌汁。2〜4時は固形物を避けて、プロテイン・無調整豆乳・ゆで卵1個・具なしスープのどれかで。',
+after:'帰ったらプロテインか温かいスープだけ飲んで、すぐ寝る。起きてからタンパク質＋野菜中心の食事を。遮光カーテンかアイマスクで睡眠を確保。',
+off:'筋トレのチャンス（週2〜3回）。時間のある日に作り置きしておくと、夜勤の週が楽になります。'};
+const RULE={night:'2〜4時は固形物を避けた',after:'帰宅後はドカ食いせずに寝た'};
+const CHECKS=[['sleep','トータル7時間くらい眠れた'],['protein','毎食タンパク質をとった'],['sweets','職場のお菓子を食べなかった'],['workout','筋トレをした']];
+
+/* ---- exercise library: id, name, part, equipment, kind (r reps / s seconds / m minutes), default a, default sets, cue, recommended ---- */
+const PARTS={chest:'胸',back:'背中',shoulder:'肩',arm:'腕',quad:'脚（前もも）',glute:'お尻・もも裏',calf:'ふくらはぎ',core:'腹・体幹',full:'全身',cardio:'有酸素・ストレッチ'};
+const TYPES={machine:['マシン','--blue'],dumbbell:['ダンベル','--purple'],barbell:['バーベル','--red'],cable:['ケーブル','--cyan'],smith:['スミス','--orange'],kettle:['ケトルベル','--orange'],body:['自重','--green'],cardio:['有酸素','--pink'],other:['その他','--mute']};
+const WEIGHTED={machine:1,dumbbell:1,barbell:1,cable:1,smith:1,kettle:1};
+const LIB=[
+['bb_bench','ベンチプレス','chest','barbell','r',10,3,'肩甲骨を寄せて胸を張る'],
+['bb_incbench','インクラインベンチプレス','chest','barbell','r',10,3,'胸の上部。ベンチ30〜45度'],
+['bb_decbench','デクラインベンチプレス','chest','barbell','r',10,3,'胸の下部'],
+['dbpress','ダンベルプレス','chest','dumbbell','r',12,3,'深く下ろして胸をストレッチ'],
+['db_incpress','インクラインダンベルプレス','chest','dumbbell','r',12,3,'胸の上部'],
+['db_fly','ダンベルフライ','chest','dumbbell','r',12,3,'肘を軽く曲げて弧を描く'],
+['db_incfly','インクラインダンベルフライ','chest','dumbbell','r',12,3,'胸の上部をストレッチ'],
+['db_pullover','ダンベルプルオーバー','chest','dumbbell','r',12,3,'胸と背中を同時に伸ばす'],
+['chestpress','チェストプレス','chest','machine','r',15,3,'肩をすくめずに押す','gym'],
+['m_incchest','インクラインチェストプレス','chest','machine','r',12,3,'胸の上部'],
+['pecfly','ペックフライ（バタフライ）','chest','machine','r',15,3,'胸の前で腕を閉じる'],
+['m_dips','アシストディップス','chest','machine','r',10,3,'前傾で胸、直立で二の腕'],
+['sm_bench','スミスベンチプレス','chest','smith','r',10,3,'軌道が安定して安全'],
+['sm_incbench','スミスインクラインプレス','chest','smith','r',10,3,'胸の上部'],
+['cb_cross','ケーブルクロスオーバー','chest','cable','r',15,3,'上から下へ寄せる'],
+['cb_lowfly','ロー→ハイケーブルフライ','chest','cable','r',15,3,'下から上へ。胸の上部'],
+['bw_push','プッシュアップ','chest','body','r',12,3,'体を一直線に'],
+['kpush','膝つきプッシュアップ','chest','body','r',12,3,'膝を床についた腕立て伏せ','home'],
+['bw_incpush','インクラインプッシュアップ','chest','body','r',15,3,'台に手をついて。初心者向け'],
+['bw_decpush','デクラインプッシュアップ','chest','body','r',10,3,'足を台に乗せて。胸の上部'],
+['bw_dips','ディップス','chest','body','r',10,3,'平行棒で体を上下'],
+['bb_dead','デッドリフト','back','barbell','r',8,3,'背中をまっすぐ、床から引く'],
+['bb_row','ベントオーバーロー','back','barbell','r',10,3,'前傾してへそに引く'],
+['bb_trow','Tバーロー','back','barbell','r',10,3,'背中の厚み'],
+['bb_pendlay','ペンドレイロー','back','barbell','r',8,3,'毎回床から引く'],
+['bb_rackpull','ラックプル','back','barbell','r',8,3,'膝上から引くデッドリフト'],
+['dbrow','ワンハンドロー（左右各）','back','dumbbell','r',12,3,'ベンチに手をついて引く'],
+['db_row','ダンベルベントオーバーロー','back','dumbbell','r',12,3,'両手で前傾して引く'],
+['db_incrow','インクラインダンベルロー','back','dumbbell','r',12,3,'ベンチにうつ伏せで引く。腰に優しい'],
+['latpull','ラットプルダウン','back','machine','r',15,3,'バーを鎖骨に向けて引く','gym'],
+['m_narrowpull','ナローグリップラットプルダウン','back','machine','r',12,3,'手幅狭く。背中の下部'],
+['row','シーテッドロー','back','machine','r',15,3,'肩甲骨を寄せて引く'],
+['m_row','チェストサポートロー','back','machine','r',12,3,'胸をパッドにつけて引く'],
+['m_assistpull','アシスト懸垂','back','machine','r',10,3,'補助つきで懸垂'],
+['m_pullover','プルオーバーマシン','back','machine','r',12,3,'広背筋を集中して'],
+['m_backext','バックエクステンション（45度台）','back','machine','r',15,3,'台に乗って上体を起こす'],
+['cb_row','ケーブルロー','back','cable','r',12,3,'座って胸を張って引く'],
+['cb_straight','ストレートアームプルダウン','back','cable','r',15,3,'腕を伸ばしたまま下ろす'],
+['cb_1arm','ワンアームケーブルプル（左右各）','back','cable','r',12,3,'片手で斜め下に引く'],
+['sm_row','スミスベントオーバーロー','back','smith','r',10,3,'軌道が安定'],
+['x_trx','TRXロー','back','other','r',12,3,'吊り下げストラップで体を引く'],
+['bw_pullup','懸垂（チンニング）','back','body','r',6,3,'難しければアシスト懸垂から'],
+['bw_invrow','斜め懸垂（インバーテッドロー）','back','body','r',10,3,'低いバーで体を引き寄せる'],
+['backext','バックエクステンション（床）','back','body','r',15,3,'うつ伏せで上体を軽く起こす'],
+['bw_superman','スーパーマン','back','body','r',15,3,'うつ伏せで手足を浮かす'],
+['bb_ohp','オーバーヘッドプレス','shoulder','barbell','r',10,3,'立って頭上に押す'],
+['bb_upright','アップライトロー','shoulder','barbell','r',12,3,'あごに向かって引き上げる'],
+['bb_shrug','バーベルシュラッグ','shoulder','barbell','r',15,3,'肩をすくめる。僧帽筋'],
+['db_shpress','ダンベルショルダープレス','shoulder','dumbbell','r',12,3,'座って頭上に押す'],
+['db_arnold','アーノルドプレス','shoulder','dumbbell','r',12,3,'ひねりながら押し上げる'],
+['sideraise','サイドレイズ','shoulder','dumbbell','r',15,3,'軽い重さで横に上げる'],
+['db_front','フロントレイズ','shoulder','dumbbell','r',15,3,'前に上げる。肩の前部'],
+['db_rear','リアレイズ','shoulder','dumbbell','r',15,3,'前傾して横に開く。肩の後部'],
+['db_shrug','ダンベルシュラッグ','shoulder','dumbbell','r',15,3,'肩をすくめる'],
+['shpress','ショルダープレス','shoulder','machine','r',15,3,'肩の上に押し上げる'],
+['m_lateral','ラテラルレイズマシン','shoulder','machine','r',15,3,'肩の横'],
+['m_reardelt','リアデルトフライ','shoulder','machine','r',15,3,'ペックフライ台に逆向きで座る'],
+['sm_ohp','スミスショルダープレス','shoulder','smith','r',10,3,'軌道が安定'],
+['cb_lateral','ケーブルサイドレイズ（左右各）','shoulder','cable','r',15,3,'片手ずつ横に上げる'],
+['cb_facepull','フェイスプル','shoulder','cable','r',15,3,'ロープを顔に向けて引く。姿勢改善に'],
+['cb_front','ケーブルフロントレイズ','shoulder','cable','r',15,3,'前に上げる'],
+['cb_upright','ケーブルアップライトロー','shoulder','cable','r',15,3,'あごに向かって引く'],
+['kb_press','ケトルベルプレス（左右各）','shoulder','kettle','r',10,3,'片手で頭上に'],
+['bw_pike','パイクプッシュアップ','shoulder','body','r',10,3,'お尻を上げた腕立て'],
+['bb_curl','バーベルカール','arm','barbell','r',12,3,'肘を固定。力こぶ'],
+['ez_curl','EZバーカール','arm','barbell','r',12,3,'手首に優しい'],
+['bb_close','ナローベンチプレス','arm','barbell','r',10,3,'手幅狭く。二の腕'],
+['ez_skull','ライイングトライセプスエクステンション','arm','barbell','r',12,3,'寝て額に下ろす。二の腕'],
+['bb_revcurl','リバースカール','arm','barbell','r',12,3,'手の甲を上に。前腕'],
+['curl','ダンベルカール','arm','dumbbell','r',12,3,'肘を固定して持ち上げる'],
+['db_hammer','ハンマーカール','arm','dumbbell','r',12,3,'縦に持って上げる'],
+['db_inccurl','インクラインダンベルカール','arm','dumbbell','r',12,3,'ベンチを倒してストレッチ'],
+['db_conc','コンセントレーションカール','arm','dumbbell','r',12,3,'座って片手ずつ'],
+['db_ohext','フレンチプレス','arm','dumbbell','r',12,3,'頭の後ろに下ろす。二の腕'],
+['db_kick','キックバック（左右各）','arm','dumbbell','r',15,3,'前傾して後ろに伸ばす。二の腕のたるみに'],
+['db_wrist','リストカール','arm','dumbbell','r',15,3,'手首だけ動かす。前腕'],
+['m_preacher','プリーチャーカール','arm','machine','r',12,3,'台に腕を乗せて'],
+['m_bicep','アームカールマシン','arm','machine','r',15,3,'力こぶ'],
+['m_tricep','トライセプスエクステンションマシン','arm','machine','r',15,3,'二の腕'],
+['cb_pushdown','トライセプスプッシュダウン','arm','cable','r',15,3,'肘を脇につけて押し下げる'],
+['cb_ohext','ケーブルオーバーヘッドエクステンション','arm','cable','r',15,3,'ロープを頭上に伸ばす'],
+['cb_curl','ケーブルカール','arm','cable','r',15,3,'常に負荷がかかる'],
+['cb_hammer','ロープハンマーカール','arm','cable','r',15,3,'ロープを縦に持って'],
+['dips','椅子ディップス','arm','body','r',10,3,'椅子に手をついて体を上下'],
+['bw_narrow','ナロープッシュアップ','arm','body','r',10,3,'手幅を狭く。二の腕'],
+['bb_squat','バーベルスクワット','quad','barbell','r',10,3,'太ももが床と平行まで'],
+['bb_front','フロントスクワット','quad','barbell','r',8,3,'バーを肩の前に。前もも'],
+['bb_lunge','バーベルランジ（左右各）','quad','barbell','r',10,3,'前に踏み出して腰を落とす'],
+['goblet','ゴブレットスクワット','quad','dumbbell','r',12,3,'ダンベルを胸の前で持ってしゃがむ'],
+['db_bulg','ブルガリアンスクワット（左右各）','quad','dumbbell','r',10,3,'後ろ足を台に乗せる'],
+['db_lunge','ダンベルランジ（左右各）','quad','dumbbell','r',10,3,'前に踏み出して腰を落とす'],
+['db_walklunge','ウォーキングランジ','quad','dumbbell','r',20,3,'歩きながら（合計回数）'],
+['db_stepup','ステップアップ（左右各）','quad','dumbbell','r',10,3,'台に乗り上がる'],
+['legpress','レッグプレス','quad','machine','r',15,3,'膝が内側に入らないように','gym'],
+['m_hack','ハックスクワット','quad','machine','r',12,3,'背中を預けてしゃがむ'],
+['legext','レッグエクステンション','quad','machine','r',15,3,'太もも前。反動を使わない'],
+['m_vsquat','Vスクワット・ペンデュラムスクワット','quad','machine','r',12,3,'腰に優しいスクワットマシン'],
+['sm_squat','スミススクワット','quad','smith','r',12,3,'軌道が安定して安全'],
+['sm_lunge','スミスランジ（左右各）','quad','smith','r',10,3,'バランスを取りやすい'],
+['kb_goblet','ケトルベルゴブレットスクワット','quad','kettle','r',12,3,'胸の前で持つ'],
+['bw_squat','スクワット','quad','body','r',20,3,'自重で'],
+['wsq','ワイドスクワット','quad','body','r',15,3,'足を肩幅より広く、つま先45度外向き','home'],
+['blunge','バックランジ（左右各）','quad','body','r',10,3,'片足を大きく後ろに引いて腰を落とす','home'],
+['bw_jumpsq','ジャンプスクワット','quad','body','r',12,3,'しゃがんでジャンプ'],
+['bw_wallsit','ウォールシット','quad','body','s',30,3,'壁に背中をつけて空気椅子'],
+['bw_sissy','シシースクワット','quad','body','r',10,3,'膝を前に出して後ろに倒れる'],
+['rdl','ルーマニアンデッドリフト','glute','barbell','r',10,3,'お尻を後ろに引いてもも裏を伸ばす'],
+['bb_sldl','スティッフレッグデッドリフト','glute','barbell','r',10,3,'膝をほぼ伸ばしたまま'],
+['bb_hipthrust','バーベルヒップスラスト','glute','barbell','r',12,3,'ベンチに背中を乗せてお尻を上げる'],
+['bb_sumo','スモウデッドリフト','glute','barbell','r',8,3,'足幅広く。お尻と内もも'],
+['bb_goodmorning','グッドモーニング','glute','barbell','r',10,3,'バーを担いでおじぎ'],
+['db_rdl','ダンベルRDL','glute','dumbbell','r',12,3,'ダンベルでもも裏を伸ばす'],
+['db_slrdl','シングルレッグRDL（左右各）','glute','dumbbell','r',10,3,'片足立ちでおじぎ'],
+['db_hipthrust','ダンベルヒップスラスト','glute','dumbbell','r',15,3,'ダンベルを腰に乗せて'],
+['legcurl','シーテッドレッグカール','glute','machine','r',15,3,'もも裏。ゆっくり戻す'],
+['m_lyingcurl','ライイングレッグカール','glute','machine','r',15,3,'うつ伏せでもも裏'],
+['abduct','ヒップアブダクション','glute','machine','r',15,3,'外に開く。お尻の横'],
+['m_adduct','ヒップアダクション','glute','machine','r',15,3,'内に閉じる。内もも'],
+['m_glute','グルートキックバックマシン','glute','machine','r',15,3,'後ろに蹴り出す'],
+['m_hipthrust','ヒップスラストマシン','glute','machine','r',12,3,'お尻を押し上げる'],
+['sm_hipthrust','スミスヒップスラスト','glute','smith','r',12,3,'セットしやすい'],
+['cb_kickback','ケーブルキックバック（左右各）','glute','cable','r',15,3,'足首にストラップをつけて'],
+['cb_pullthrough','ケーブルプルスルー','glute','cable','r',15,3,'股の間から引く'],
+['cb_abduct','ケーブルアブダクション（左右各）','glute','cable','r',15,3,'横に開く'],
+['kb_swing','ケトルベルスイング','glute','kettle','r',15,3,'お尻の力で振り上げる'],
+['hiplift','ヒップリフト','glute','body','r',15,3,'仰向けで膝を立ててお尻を上げる'],
+['bw_slbridge','片足ヒップリフト（左右各）','glute','body','r',12,3,'片足で'],
+['bw_donkey','ドンキーキック（左右各）','glute','body','r',15,3,'四つん這いで後ろに蹴り上げる'],
+['bw_clam','クラムシェル（左右各）','glute','body','r',15,3,'横向きで膝を開く'],
+['bw_nordic','ノルディックハムカール','glute','body','r',6,3,'膝立ちでゆっくり前に倒れる'],
+['m_calf','スタンディングカーフレイズ','calf','machine','r',15,3,'かかとを上げ下げ'],
+['m_seatcalf','シーテッドカーフレイズ','calf','machine','r',15,3,'座って'],
+['m_lpcalf','レッグプレスカーフレイズ','calf','machine','r',15,3,'レッグプレス台でつま先で押す'],
+['sm_calf','スミスカーフレイズ','calf','smith','r',15,3,'段差の上で'],
+['db_calf','ダンベルカーフレイズ','calf','dumbbell','r',15,3,'ダンベルを持って'],
+['bw_calf','カーフレイズ','calf','body','r',20,3,'段差でかかとを上げ下げ'],
+['plank','プランク','core','body','s',30,3,'肘とつま先で体を一直線に','home'],
+['sideplank','サイドプランク（左右各）','core','body','s',20,2,'横向きで体を一直線に'],
+['crunch','クランチ','core','body','r',15,3,'おへそをのぞき込む'],
+['bw_situp','シットアップ','core','body','r',15,3,'上体を起こしきる'],
+['bw_legraise','レッグレイズ','core','body','r',12,3,'仰向けで脚を上げ下げ。下腹'],
+['bw_hangraise','ハンギングレッグレイズ','core','body','r',10,3,'ぶら下がって脚を上げる'],
+['bw_bicycle','バイシクルクランチ','core','body','r',20,3,'ひねりながら。わき腹'],
+['bw_russian','ロシアンツイスト','core','body','r',20,3,'座って左右にひねる'],
+['bw_climber','マウンテンクライマー','core','body','s',30,3,'腕立ての姿勢で脚を交互に'],
+['bw_abroller','アブローラー','core','body','r',10,3,'膝つきからでOK'],
+['bw_vup','Vアップ','core','body','r',12,3,'手足を同時に上げる'],
+['deadbug','デッドバグ','core','body','r',10,3,'仰向けで手足を交互に伸ばす'],
+['bw_birddog','バードドッグ（左右各）','core','body','r',10,3,'四つん這いで対角の手足を伸ばす'],
+['bw_hollow','ホローボディ','core','body','s',30,3,'仰向けで手足を浮かせて保つ'],
+['m_ab','アブドミナルクランチ','core','machine','r',15,3,'お腹を丸める'],
+['m_torso','トーソローテーション','core','machine','r',15,3,'座って体をひねる。わき腹'],
+['cb_crunch','ケーブルクランチ','core','cable','r',15,3,'膝立ちでロープを持って丸まる'],
+['cb_woodchop','ケーブルウッドチョップ（左右各）','core','cable','r',12,3,'斜めにひねる'],
+['cb_pallof','パロフプレス（左右各）','core','cable','r',12,3,'ひねられないように耐える'],
+['db_sidebend','ダンベルサイドベンド','core','dumbbell','r',15,3,'横に倒す。わき腹'],
+['bb_clean','パワークリーン','full','barbell','r',5,3,'床から肩まで一気に'],
+['bb_thruster','バーベルスラスター','full','barbell','r',10,3,'スクワットから頭上に押す'],
+['db_thruster','ダンベルスラスター','full','dumbbell','r',12,3,'スクワットから頭上に押す'],
+['db_farmer','ファーマーズウォーク','full','dumbbell','s',40,3,'重いダンベルを持って歩く'],
+['db_snatch','ダンベルスナッチ（左右各）','full','dumbbell','r',8,3,'床から頭上へ一気に'],
+['kb_tgu','ターキッシュゲットアップ（左右各）','full','kettle','r',3,3,'寝た姿勢から立ち上がる'],
+['kb_clean','ケトルベルクリーン＆プレス（左右各）','full','kettle','r',8,3,'肩まで上げて頭上へ'],
+['bw_burpee','バーピー','full','body','r',10,3,'しゃがむ→腕立て→ジャンプ'],
+['bw_jjack','ジャンピングジャック','full','body','s',30,3,'開いて閉じてジャンプ'],
+['bw_bear','ベアクロール','full','body','s',30,3,'四つん這いで前進'],
+['x_battle','バトルロープ','full','other','s',30,3,'ロープを波打たせる'],
+['x_slam','メディシンボールスラム','full','other','r',12,3,'ボールを床に叩きつける'],
+['x_boxjump','ボックスジャンプ','full','other','r',10,3,'台に跳び乗る'],
+['x_sled','スレッドプッシュ','full','other','s',20,3,'ソリを押して進む'],
+['walk','早歩き','cardio','cardio','m',20,0,'少し息が上がるくらい'],
+['incline','トレッドミル（傾斜歩き）','cardio','cardio','m',20,0,'傾斜5〜10%でゆっくり'],
+['c_run','ランニング','cardio','cardio','m',20,0,'会話できるペースで'],
+['c_interval','インターバル走','cardio','cardio','m',15,0,'速い・遅いを交互に'],
+['bike','エアロバイク','cardio','cardio','m',20,0,'会話できる強さで'],
+['c_elliptical','クロストレーナー','cardio','cardio','m',20,0,'膝に優しい'],
+['c_stair','ステアクライマー','cardio','cardio','m',15,0,'階段を上り続ける'],
+['c_rower','ローイングマシン','cardio','cardio','m',15,0,'脚→背中→腕の順で漕ぐ'],
+['c_swim','水泳','cardio','cardio','m',30,0,'全身運動'],
+['aqua','水中ウォーキング','cardio','cardio','m',30,0,'膝への負担が少ない'],
+['c_rope','縄跳び','cardio','cardio','m',10,0,'短時間で高強度'],
+['c_hiit','HIIT（タバタなど）','cardio','cardio','m',10,0,'20秒全力＋10秒休憩'],
+['c_studio','スタジオレッスン','cardio','cardio','m',45,0,'エアロ・ダンス・ヨガなど'],
+['c_stretch','ストレッチ','cardio','other','m',10,0,'トレーニング後のクールダウン']];
+const KINDS={r:'回数',s:'秒',m:'分'};
+let L={};
+let TR={items:[],favs:[],tpls:[],custom:[]};
+function buildL(){L={};LIB.forEach(x=>{L[x[0]]={id:x[0],n:x[1],p:x[2],t:x[3],k:x[4],d:[x[5],x[6]],how:x[7],rec:x[8]||''}});TR.custom.forEach(c=>{L[c.id]={id:c.id,n:c.n,p:c.p,t:c.t,k:c.k,d:[c.k==='m'?20:c.k==='s'?30:12,c.k==='m'?0:3],how:'自分で追加した種目',rec:'',mine:true}})}
+const isCid=id=>typeof id==='string'&&/^c_[a-z0-9]{3,24}$/.test(id);
+const known=id=>typeof id==='string'&&(!!L[id]||isCid(id));
+const ex=id=>L[id]||{id,n:'（削除した種目）',p:'full',t:'other',k:'r',d:[10,3],how:'',rec:''};
+
+let S={start:today(),w0:70,goal:60};
+let days={};
+let cur=today(),tab='today',flt='all',favOnly=false,qText='',histN=5,pendTpl=null,pend=false;
+let openP=new Set();try{openP=new Set(JSON.parse(localStorage.getItem('gp-open')||'[]'))}catch(e){}
+let note='';
+
+function cleanItem(o){if(!o||!known(o.id))return null;const e=ex(o.id);return {id:o.id,a:clamp(num(o.a)??e.d[0],1,180),b:e.k==='m'?0:clamp(Math.round(num(o.b)??e.d[1]),1,10),kg:WEIGHTED[e.t]?clamp(num(o.kg)||0,0,300):0}}
+function cleanItems(a,max){const seen={},r=[];(Array.isArray(a)?a:[]).forEach(o=>{const c=cleanItem(o);if(c&&!seen[c.id]){seen[c.id]=1;r.push(c)}});return r.slice(0,max||40)}
+function cleanDay(o){o=o||{};const r={shift:SHIFTS[o.shift]?o.shift:'day',weight:num(o.weight),water:clamp(Math.round(num(o.water)||0),0,8)};for(const k of ['sleep','protein','sweets','rule','workout'])r[k]=o[k]===true;
+  r.log=Array.isArray(o.log)?cleanItems(o.log):Array.isArray(o.done)?cleanItems(o.done.map(id=>({id}))):[];return r}
+function cleanTR(o){o=o||{};
+  const custom=[];(Array.isArray(o.custom)?o.custom:[]).forEach(c=>{if(c&&isCid(c.id)&&typeof c.n==='string'&&c.n.trim()&&PARTS[c.p]&&TYPES[c.t]&&KINDS[c.k]&&!custom.some(x=>x.id===c.id))custom.push({id:c.id,n:c.n.trim().slice(0,40),p:c.p,t:c.t,k:c.k})});
+  TR={items:[],favs:[],tpls:[],custom:custom.slice(0,60)};buildL();
+  TR.items=cleanItems(o.items);
+  TR.favs=[...new Set((Array.isArray(o.favs)?o.favs:[]).filter(known))].slice(0,100);
+  (Array.isArray(o.tpls)?o.tpls:[]).forEach(t=>{if(t&&typeof t.id==='string'&&/^t[a-z0-9]{3,24}$/.test(t.id)&&typeof t.name==='string'&&t.name.trim())TR.tpls.push({id:t.id,name:t.name.trim().slice(0,30),items:cleanItems(t.items)})});
+  TR.tpls=TR.tpls.slice(0,30);return TR}
+function applySet(o){if(!o)return;if(isDate(o.start))S.start=o.start;const a=num(o.w0),b=num(o.goal);if(a&&a>30&&a<250)S.w0=a;if(b&&b>30&&b<250&&b<S.w0)S.goal=b}
+function planPts(){const D=S.w0-S.goal;return [[S.start,S.w0],[addMonths(S.start,2),S.w0-D*.4],[addMonths(S.start,4),S.w0-D*.75],[addMonths(S.start,6),S.goal]]}
+function planAt(s){const p=planPts();if(s<=p[0][0])return p[0][1];for(let i=1;i<p.length;i++){if(s<=p[i][0]){const a=p[i-1],b=p[i];return a[1]+(b[1]-a[1])*diff(a[0],s)/diff(a[0],b[0])}}return S.goal}
+function series(){return Object.keys(days).filter(isDate).sort().map(k=>[k,days[k].weight]).filter(x=>x[1]!=null)}
+function avgRange(from,to){const xs=series().filter(x=>x[0]>from&&x[0]<=to).map(x=>x[1]);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null}
+function latestUpTo(d){const s=series().filter(x=>x[0]<=d);return s.length?s[s.length-1][1]:null}
+function weekStart(d){const x=parse(d);x.setDate(x.getDate()-(x.getDay()+6)%7);return ymd(x)}
+function sessions(){return Object.keys(days).filter(k=>isDate(k)&&days[k].log.length).sort().reverse()}
+function lastLog(id,before){for(const k of sessions()){if(k>=before)continue;const e=days[k].log.find(x=>x.id===id);if(e)return [k,e]}return null}
+function status(m,keep){note=m;$('#st span').textContent=m;if(m&&!keep)setTimeout(()=>{if(note===m)status('')},2600)}
+
+/* ---- theme (kept on this device) ---- */
+let pref='auto';
+try{pref=localStorage.getItem('gp-theme')||'auto'}catch(e){}
+const mqDark=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
+function applyTheme(){const bd=document.body;bd.classList.toggle('m-dark',pref==='dark');bd.classList.toggle('m-light',pref==='light');const dark=pref==='dark'||(pref==='auto'&&mqDark&&mqDark.matches);root.style.background=dark?'#121316':'#f2f2f7';const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',dark?'#121316':'#f2f2f7')}
+function setTheme(v){if(!['auto','light','dark'].includes(v))return;pref=v;try{localStorage.setItem('gp-theme',v)}catch(e){}applyTheme()}
+if(mqDark&&mqDark.addEventListener)mqDark.addEventListener('change',applyTheme);
+applyTheme();
+
+/* ---- storage: Firebase (Google login + Cloud Firestore, one private space per account) ---- */
+const FBV='13.2.0',FBU='https://www.gstatic.com/firebasejs/'+FBV+'/';
+let fb=null,user=null,mode='loading',unsubs=[],hasMain=false,loadedDays=false,pendingWrites=false,gateMsg='';
+const tm={};
+function dref(...p){return fb.FS.doc(fb.db,'users',user.uid,...p)}
+function dbErr(e){const c=e&&e.code||'';if(c==='permission-denied'){mode='denied';render();return}status('保存でエラーが起きました（'+String(c||e).slice(0,40)+'）',true)}
+function later(key,ref,body){if(tm[key])clearTimeout(tm[key].t);const run=()=>{delete tm[key];if(!user||!fb)return;fb.FS.setDoc(ref(),body()).catch(dbErr)};tm[key]={t:setTimeout(run,500),run}}
+function flushAll(){Object.keys(tm).forEach(k=>{clearTimeout(tm[k].t);tm[k].run()})}
+function saveDay(id){later('day:'+id,()=>dref('days',id),()=>cleanDay(days[id]))}
+function saveTR(){later('train',()=>dref('settings','train'),()=>JSON.parse(JSON.stringify(TR)))}
+function saveSet(){hasMain=true;later('main',()=>dref('settings','main'),()=>({start:S.start,w0:S.w0,goal:S.goal}))}
+function setField(k,v){const d=cleanDay(days[cur]);d[k]=v;days[cur]=d;saveDay(cur);render()}
+function resetData(){days={};cleanTR({});S={start:today(),w0:70,goal:60};hasMain=false;loadedDays=false;pendingWrites=false;cur=today()}
+function syncText(){if(!user)return '';return (pendingWrites?'未送信の記録があります。電波が戻ると自動で送信されます。':'記録はクラウド（Firebase）に保存されています。')+'このアカウントの記録は本人しか見られません。'}
+function showSync(){const el=document.getElementById('sst');if(el)el.textContent=syncText()}
+function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function restore(j){if(!j||typeof j!=='object'||!j.days)throw new Error('形式が違います');if(!user)throw new Error('ログインしてください');
+  if(j.TR)cleanTR(j.TR);if(j.S)applySet(j.S);const ops=[[dref('settings','main'),{start:S.start,w0:S.w0,goal:S.goal}],[dref('settings','train'),JSON.parse(JSON.stringify(TR))]];hasMain=true;
+  for(const k in j.days)if(isDate(k)){days[k]=cleanDay(j.days[k]);ops.push([dref('days',k),days[k]])}
+  for(let i=0;i<ops.length;i+=400){const b=fb.FS.writeBatch(fb.db);ops.slice(i,i+400).forEach(o=>b.set(o[0],o[1]));b.commit().catch(dbErr)}
+  return ops.length-2}
+function startUser(u){
+  const em=String(u.email||'').toLowerCase();user=u;unsubs.forEach(f=>f());unsubs=[];resetData();
+  if(fb.allowed.length&&!fb.allowed.includes(em)){mode='denied';render();return}
+  mode='app';render();const FS=fb.FS;
+  unsubs.push(FS.onSnapshot(FS.collection(fb.db,'users',u.uid,'days'),{includeMetadataChanges:true},snap=>{
+    pendingWrites=snap.metadata.hasPendingWrites;showSync();
+    if(loadedDays&&!snap.docChanges().length)return;
+    const n={};snap.docs.forEach(d=>{if(isDate(d.id))n[d.id]=cleanDay(d.data())});
+    Object.keys(tm).forEach(k=>{if(k.startsWith('day:')){const id=k.slice(4);if(days[id])n[id]=days[id]}});
+    days=n;loadedDays=true;soft()},dbErr));
+  unsubs.push(FS.onSnapshot(dref('settings','main'),s=>{if(tm.main)return;if(s.exists()){hasMain=true;applySet(s.data())}soft()},dbErr));
+  unsubs.push(FS.onSnapshot(dref('settings','train'),s=>{if(tm.train)return;if(s.exists())cleanTR(s.data());soft()},dbErr));
+}
+function stopUser(){flushAll();unsubs.forEach(f=>f());unsubs=[];user=null;resetData();mode='login';render()}
+const GLOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.7 1.2 9.2 3.6l6.9-6.9C35.9 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.6 13.3l8 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.8c4.3-4 6.9-9.9 6.9-17.2z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-8-6.2C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.8c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.8l-8 6.2C6.6 42.6 14.6 48 24 48z"/></svg>';
+function gate(){
+  const icon='<img src="icons/icon-192.png" alt="">',title='<h1>減量プラン手帳</h1>';
+  if(mode==='login')return `<div class="gate">${icon}${title}<p>Googleアカウントでログインします。記録はアカウントごとに分かれ、本人しか見られません。</p><button class="sbtn p gbtn" data-a="login">${GLOGO}Googleでログイン</button>${gateMsg?`<p style="color:var(--red)">${esc(gateMsg)}</p>`:''}</div>`;
+  if(mode==='denied')return `<div class="gate">${icon}${title}<p>このGoogleアカウント（${esc(user&&user.email||'')}）では使えません。登録したアカウントでログインし直してください。</p><button class="sbtn" data-a="logout">ログアウト</button></div>`;
+  if(mode==='setup')return `<div class="gate">${icon}${title}<p>Firebaseの設定がまだです。README の手順に沿って <b>firebase-config.js</b> に設定を貼り付け、GitHubにアップロードしてください。</p></div>`;
+  if(mode==='neterr')return `<div class="gate">${icon}${title}<p>ログインの仕組みを読み込めませんでした。電波を確認して、開き直してください。</p><button class="sbtn" data-a="reload">開き直す</button></div>`;
+  return `<div class="gate">${icon}<p>読み込み中…</p></div>`;
+}
+async function boot(){
+  let CFG=null;
+  try{CFG=(await import('./firebase-config.js')).default}catch(e){CFG=null}
+  const c=CFG&&CFG.firebase;if(!c||!c.apiKey||!c.projectId||/ここ|YOUR|xxxx/i.test(c.apiKey+c.projectId)){mode='setup';render();return}
+  try{
+    const [A,AU,FS]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-auth.js'),import(FBU+'firebase-firestore.js')]);
+    const app=A.initializeApp(c);const auth=AU.getAuth(app);
+    let db;try{db=FS.initializeFirestore(app,{localCache:FS.persistentLocalCache({tabManager:FS.persistentMultipleTabManager()})})}catch(e){db=FS.getFirestore(app)}
+    fb={auth,db,AU,FS,allowed:(Array.isArray(CFG.allowedEmails)?CFG.allowedEmails:[]).map(x=>String(x).trim().toLowerCase()).filter(x=>x&&!/example|you@|partner@/.test(x))};
+    AU.onAuthStateChanged(auth,u=>{if(u)startUser(u);else stopUser()});
+  }catch(e){mode='neterr';render()}
+}
+function login(){if(!fb)return;gateMsg='';const p=new fb.AU.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  fb.AU.signInWithPopup(fb.auth,p).catch(e=>{const c=e&&e.code||'';if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
+    gateMsg=c==='auth/unauthorized-domain'?'このサイトのURLがFirebaseで許可されていません（README 手順2-5）':c==='auth/popup-blocked'?'ポップアップがブロックされました。ブラウザの設定で許可してください':c==='auth/network-request-failed'?'通信できませんでした。電波を確認してください':'ログインできませんでした（'+c+'）';render()})}
+
+/* ---- sheets & wheel picker ---- */
+const IH=44;let pcols=null,sheetOk=null,sheetBack=null;
+function openSheet(html){sheet.innerHTML=html;scrim.hidden=false;sheet.hidden=false;sheet.scrollTop=0;requestAnimationFrame(()=>sheet.classList.add('on'))}
+function closeSheetQuiet(){sheet.classList.remove('on');scrim.hidden=true;sheet.hidden=true;sheet.innerHTML='';sheetOk=null;pcols=null;sheetBack=null}
+function closeSheet(){sheet.classList.remove('on');scrim.hidden=true;sheet.hidden=true;sheet.innerHTML='';sheetOk=null;pcols=null;const b=sheetBack;sheetBack=null;if(b)b();else soft()}
+function closeSheetOk(f){const b=sheetBack;sheetBack=null;f();closeSheet();if(b)b()}
+function picker(title,cols,ok,back){
+  pcols=cols;sheetBack=back||null;
+  openSheet(`<div class="sbar"><button class="tb" data-a="sx">キャンセル</button><b>${esc(title)}</b><button class="tb strong" data-a="sok">完了</button></div><div class="wheels"><div class="hl"></div>${cols.map((c,ci)=>`<div class="wcol"><div class="wheel" tabindex="0" data-c="${ci}" role="listbox" aria-label="${esc(c.unit||title)}" style="width:${c.w||4.4}em"><div class="wpad"></div>${c.vals.map((v,i)=>`<div class="opt" data-i="${i}">${esc(c.labels?c.labels[i]:v)}</div>`).join('')}<div class="wpad"></div></div>${c.unit?`<span class="wu">${esc(c.unit)}</span>`:''}</div>`).join('')}</div>`);
+  sheetOk=()=>ok(cols.map((c,ci)=>c.vals[wIdx(ci)]));
+  requestAnimationFrame(()=>sheet.querySelectorAll('.wheel').forEach(w=>{w.scrollTop=cols[+w.dataset.c].i*IH;mark(w)}));
+}
+function wIdx(ci){const w=sheet.querySelector(`.wheel[data-c="${ci}"]`);return clamp(Math.round(w.scrollTop/IH),0,pcols[ci].vals.length-1)}
+function mark(w){const i=Math.round(w.scrollTop/IH);if(w.dataset.s==String(i))return;const o=w.querySelector('.opt.sel');if(o)o.classList.remove('sel');const n=w.querySelector(`.opt[data-i="${i}"]`);if(n){n.classList.add('sel');w.setAttribute('aria-valuetext',n.textContent)}w.dataset.s=i}
+let rafW=0;sheet.addEventListener('scroll',e=>{const w=e.target;if(!w.classList||!w.classList.contains('wheel'))return;cancelAnimationFrame(rafW);rafW=requestAnimationFrame(()=>mark(w))},true);
+sheet.addEventListener('keydown',e=>{const w=e.target;if(w.id==='tn'&&e.key==='Enter'){e.preventDefault();saveTpl();return}if(w.id==='cn'&&e.key==='Enter'){e.preventDefault();addCustom();return}if(!w.classList||!w.classList.contains('wheel'))return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();w.scrollBy({top:e.key==='ArrowDown'?IH:-IH,behavior:'smooth'})}else if(e.key==='Enter'&&sheetOk){e.preventDefault();closeSheetOk(sheetOk)}});
+const idxOf=(vals,v)=>{let bi=0,bd=1e9;vals.forEach((x,i)=>{const d=Math.abs(x-v);if(d<bd){bd=d;bi=i}});return bi};
+function weightCols(v){const ints=range(30,150),dec=range(0,9);const w=Math.round(v*10)/10,ip=Math.floor(w);return [{vals:ints,i:idxOf(ints,ip),w:3.6},{vals:dec,labels:dec.map(d=>'.'+d),i:Math.round((w-ip)*10)%10,unit:'kg',w:2.6}]}
+const toW=v=>Math.round((v[0]+v[1]/10)*10)/10;
+const KGV=[...range(0,60,.5),...range(62.5,300,2.5)];
+function pickWeight(){const d=cleanDay(days[cur]);picker('体重',weightCols(d.weight??latestUpTo(cur)??S.w0),v=>{setField('weight',toW(v));status('記録しました')})}
+function pickItem(id){
+  const it=TR.items.find(x=>x.id===id);if(!it)return;const e=ex(id);let cols;
+  if(e.k==='m'){const v=range(5,120,5);cols=[{vals:v,i:idxOf(v,it.a),unit:'分'}]}
+  else{const a=e.k==='s'?range(10,180,5):range(1,50),b=range(1,10);cols=[{vals:a,i:idxOf(a,it.a),unit:e.k==='s'?'秒':'回',w:3.4},{vals:b,i:idxOf(b,it.b),unit:'セット',w:2.8}];
+    if(WEIGHTED[e.t])cols.push({vals:KGV,labels:KGV.map(x=>x?String(x):'—'),i:idxOf(KGV,it.kg),unit:'kg',w:3.8})}
+  picker(e.n,cols,v=>{const m=TR.items.find(x=>x.id===id);if(!m)return;m.a=v[0];if(e.k!=='m')m.b=v[1];if(v[2]!=null)m.kg=v[2];saveTR();
+    const t=today(),d=cleanDay(days[t]),li=d.log.find(x=>x.id===id);if(li){li.a=m.a;li.b=m.b;li.kg=m.kg;days[t]=d;saveDay(t)}render()});
+}
+function fmtItem(it){const e=ex(it.id);if(e.k==='m')return it.a+'分';return (it.kg?it.kg+'kg · ':'')+it.a+(e.k==='s'?'秒':'回')+' × '+it.b+'セット'}
+function addItems(items,replace){if(replace)TR.items=[];items.forEach(i=>{const c=cleanItem(i);if(c&&!TR.items.some(x=>x.id===c.id))TR.items.push(c)});TR.items=TR.items.slice(0,40);saveTR()}
+function itemList(items){return `<div class="group">${items.map(i=>`<div class="li"><span class="grow">${esc(ex(i.id).n)}</span><span class="r">${esc(fmtItem(i))}</span></div>`).join('')||'<div class="empty">種目がありません</div>'}</div>`}
+const PRESETS=['胸の日','背中の日','脚の日','肩・腕の日','上半身の日','下半身の日','全身の日','自宅トレ'];
+function openTplSave(items){pendTpl=items.map(i=>({...i}));openSheet(`<div class="sbar"><button class="tb" data-a="sx">キャンセル</button><b>テンプレに保存</b><button class="tb strong" data-a="tplok">保存</button></div><div class="sbody">
+<div class="sl">名前</div><div class="group"><div class="li"><input id="tn" class="tin" maxlength="30" placeholder="例：脚の日" autocomplete="off"></div></div>
+<div class="chips wrap">${PRESETS.map(n=>`<button data-a="tname" data-v="${esc(n)}">${esc(n)}</button>`).join('')}</div>
+<div class="sl">保存する種目（${pendTpl.length}）</div>${itemList(pendTpl)}<p class="note">同じ名前のテンプレがあれば上書きします。</p></div>`)}
+function saveTpl(){const el=$('#tn');const name=(el?el.value:'').trim().slice(0,30);if(!name){status('名前を入れてください');return}if(!pendTpl||!pendTpl.length){closeSheet();return}const ex0=TR.tpls.find(t=>t.name===name);if(ex0)ex0.items=cleanItems(pendTpl);else TR.tpls.unshift({id:uid36('t'),name,items:cleanItems(pendTpl)});TR.tpls=TR.tpls.slice(0,30);pendTpl=null;saveTR();closeSheet();status('「'+name+'」を保存しました')}
+function openTpl(id){const t=TR.tpls.find(x=>x.id===id);if(!t)return;openSheet(`<div class="sbar"><span></span><b>${esc(t.name)}</b><button class="tb strong" data-a="sx">閉じる</button></div><div class="sbody">${itemList(t.items)}
+<button class="sbtn p" data-a="tpluse" data-v="${t.id}">このメニューに置き換える</button>
+<button class="sbtn" data-a="tpladd" data-v="${t.id}">今のメニューに追加</button>
+<button class="sbtn" data-a="tplover" data-v="${t.id}" ${TR.items.length?'':'disabled'}>今のメニューで上書き保存</button>
+<button class="sbtn d" data-a="tpldel" data-v="${t.id}">テンプレを削除</button></div>`)}
+function openHist(k){const d=days[k];if(!d)return;openSheet(`<div class="sbar"><span></span><b>${esc(fmtDate(k))}</b><button class="tb strong" data-a="sx">閉じる</button></div><div class="sbody">${itemList(d.log)}
+<button class="sbtn p" data-a="hreplay" data-v="${esc(k)}">このメニューを再現（置き換え）</button>
+<button class="sbtn" data-a="hadd" data-v="${esc(k)}">今のメニューに追加</button>
+<button class="sbtn" data-a="hsave" data-v="${esc(k)}">テンプレとして保存</button></div>`)}
+let cDraft={p:'chest',t:'machine',k:'r'};
+function openCustom(){cDraft={p:'chest',t:'machine',k:'r'};const seg=(key,obj)=>`<div class="chips wrap">${Object.keys(obj).map(k=>`<button data-a="cd" data-k="${key}" data-v="${k}" aria-pressed="${cDraft[key]===k}">${esc(Array.isArray(obj[k])?obj[k][0]:obj[k])}</button>`).join('')}</div>`;
+  openSheet(`<div class="sbar"><button class="tb" data-a="sx">キャンセル</button><b>種目を追加</b><button class="tb strong" data-a="cadd">追加</button></div><div class="sbody">
+<div class="sl">種目名</div><div class="group"><div class="li"><input id="cn" class="tin" maxlength="40" placeholder="例：ヒップスラスト（片足）" autocomplete="off"></div></div>
+<div class="sl">部位</div>${seg('p',PARTS)}<div class="sl">器具</div>${seg('t',TYPES)}<div class="sl">記録のしかた</div>${seg('k',{r:'回数 × セット',s:'秒 × セット',m:'分'})}
+<p class="note">追加した種目は「種目を探す」の各部位に★と一緒に並び、マイメニューにも入ります。</p></div>`)}
+function addCustom(){const el=$('#cn');const n=(el?el.value:'').trim().slice(0,40);if(!n){status('種目名を入れてください');return}const c={id:uid36('c_'),n,p:cDraft.p,t:cDraft.t,k:cDraft.k};TR.custom.push(c);buildL();addItems([{id:c.id}]);openP.add(c.p);closeSheet();status('「'+n+'」を追加しました')}
+
+/* ---- settings sheet ---- */
+function openSettings(){
+  openSheet(`<div class="sbar"><span></span><b>設定</b><button class="tb strong" data-a="sx">完了</button></div><div class="sbody">
+<div class="sl">表示モード</div><div class="segc" style="margin:0">${[['auto','自動'],['light','ライト'],['dark','ダーク']].map(t=>`<button data-a="theme" data-v="${t[0]}" aria-pressed="${pref===t[0]}">${t[1]}</button>`).join('')}</div>
+<div class="sl">計画</div><div class="group">
+<label class="li"><span class="grow">開始日</span><input id="sd" type="date" value="${esc(S.start)}"></label>
+<button class="li" data-a="pw0"><span class="grow">開始体重</span><span class="r">${S.w0.toFixed(1)} kg ›</span></button>
+<button class="li" data-a="pgoal"><span class="grow">目標体重</span><span class="r">${S.goal.toFixed(1)} kg ›</span></button></div>
+<div class="sl">アカウント</div><div class="group"><div class="li"><span class="grow">${esc(user&&user.email||'')}</span></div></div>
+<p class="note" id="sst">${esc(syncText())}</p>
+<button class="sbtn d" data-a="logout">ログアウト</button>
+<div class="sl">バックアップ</div>
+<button class="sbtn" data-a="bkdl">バックアップを保存（ファイル）</button>
+<label class="sbtn" style="display:grid;place-items:center;cursor:pointer">バックアップから復元<input id="bkf" type="file" accept="application/json,.json" hidden></label>
+<p class="note">記録はクラウドに保存されていますが、念のため月に1回くらい保存しておくと安心です。復元すると、同じ日付の記録はファイルの内容で上書きされます。</p></div>`);
+}
+
+/* ---- views ---- */
+function head(title,sub){return `<div class="hd"><div><small>${sub}</small><h1>${title}</h1></div><button class="gear" data-a="settings" aria-label="設定"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>`}
+function cup(full){return `<svg viewBox="0 0 30 44" aria-hidden="true"><path d="M6 6h18l-2.6 32a3 3 0 0 1-3 2.6h-6.8a3 3 0 0 1-3-2.6z" fill="${full?'var(--cyan)':'none'}" stroke="${full?'var(--cyan)':'var(--sep)'}" stroke-width="2"/></svg>`}
+function vToday(){
+  const d=cleanDay(days[cur]),n=diff(S.start,cur)+1,tot=diff(S.start,addMonths(S.start,6)),p=planAt(cur),lw=latestUpTo(cur);
+  const rows=[...CHECKS.slice(0,3)];if(RULE[d.shift])rows.push(['rule',RULE[d.shift]]);rows.push(CHECKS[3]);
+  const done=rows.filter(r=>d[r[0]]).length+(d.water>=8?1:0)+(d.weight!=null?1:0),total=rows.length+2;
+  const isT=cur===today();
+  return `<div class="in">${head(isT?'今日':short(cur),`<span style="display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap"><button data-a="prev" aria-label="前の日" style="color:var(--blue);min-width:28px;min-height:28px">‹</button>${esc(fmtDate(cur))}　${n>0?n+'日目 / '+tot+'日':'開始前'}${isT?'':' <button data-a="next" aria-label="次の日" style="color:var(--blue);min-width:28px;min-height:28px">›</button> <button data-a="today" style="color:var(--blue)">今日へ</button>'}</span>`)}
+${hasMain||!loadedDays?'':`<button class="card" data-a="settings" style="display:block;width:100%;text-align:left"><div class="ch" style="color:var(--blue)"><span>はじめに</span><span class="t">設定 ›</span></div><p class="tip">開始日・開始体重・目標体重を設定してください。</p></button>`}
+<button class="card" data-a="weight" style="display:block;width:100%;text-align:left">
+<div class="ch" style="color:var(--purple)"><span>${ICON.body}体重</span><span class="t">${d.weight==null?'タップして記録':'計画 '+f1(p)+' kg'} ›</span></div>
+<div class="row2"><div><span class="val">${f1(d.weight)}</span><span class="unit">kg</span><div class="sub">${lw==null?'朝起きてトイレの後に測ります':'目標まであと '+Math.max(0,lw-S.goal).toFixed(1)+' kg'}</div></div>${d.weight!=null&&d.weight-p!==0?`<span class="pill" style="color:${d.weight<=p?'var(--green)':'var(--orange)'}">計画比 ${sgn(d.weight-p)}</span>`:''}</div></button>
+<div class="card"><div class="ch" style="color:var(--green)"><span>${ICON.food}勤務と食べ方</span></div>
+<div class="segc">${Object.keys(SHIFTS).map(k=>`<button data-a="shift" data-v="${k}" aria-pressed="${d.shift===k}">${SHIFTS[k]}</button>`).join('')}</div>
+<p class="tip">${GUIDE[d.shift]}</p></div>
+<div class="card"><div class="ch" style="color:var(--cyan)"><span>${ICON.water}水分</span><span class="t">1杯 250ml</span></div>
+<div style="margin-top:4px"><span class="val">${String(d.water*.25)}</span><span class="unit">/ 2 L</span></div>
+<div class="cups">${Array.from({length:8},(_,i)=>`<button data-a="cup" data-v="${i}" aria-label="${i+1}杯目">${cup(i<d.water)}</button>`).join('')}</div></div>
+<div class="sec">チェック<small>${done} / ${total}</small></div>
+<div class="group">${rows.map(r=>`<button class="li" data-a="chk" data-v="${r[0]}" aria-pressed="${d[r[0]]}"><span class="ck"></span><span class="grow">${esc(r[1])}</span></button>`).join('')}</div>
+<p class="note">増減は1日ではなく、1週間の流れで見ます。${d.weight!=null?' <button data-a="wdel" style="color:var(--red);font-size:13px">この日の体重を消す</button>':''}</p></div>`;
+}
+function vFood(){
+  const segs=[['タンパク質',90*4,'--pink','80〜100g','肉・魚・卵・大豆製品・プロテイン。最優先'],['脂質',40*9,'--orange','35〜45g','揚げ物・菓子パン・スナック・ドレッシングの油を控える'],['炭水化物',145*4,'--blue','130〜160g','完全には抜かない。ごはんは1食100〜120g']];
+  const tot=segs.reduce((s,x)=>s+x[1],0),C=2*Math.PI*40,gap=1.2;let off=0;
+  const arcs=segs.map(s=>{const len=C*s[1]/tot;const a=`<circle cx="50" cy="50" r="40" fill="none" stroke="var(${s[2]})" stroke-width="14" stroke-dasharray="${(len-gap).toFixed(2)} ${(C-len+gap).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}"/>`;off+=len;return a}).join('');
+  const lst=(a)=>`<div class="group">${a.map(x=>`<div class="li"><span class="grow">${x[0]}</span><span class="r">${x[1]}</span></div>`).join('')}</div>`;
+  return `<div class="in">${head('食事','PFCバランスの目安')}
+<div class="card"><div class="ch" style="color:var(--green)"><span>${ICON.food}1日の目安</span><span class="t">摂取 1,300〜1,500 kcal</span></div>
+<div class="donut"><div class="dwrap"><svg viewBox="0 0 100 100" role="img" aria-label="カロリーの内訳">${arcs}</svg><div class="dmid"><b>${tot.toLocaleString()}</b><span>kcal（中央値）</span></div></div>
+<div class="leg">${segs.map(s=>`<div><i style="background:var(${s[2]})"></i><span>${s[0]}</span><b>${s[3]}</b><em>カロリーの${Math.round(s[1]/tot*100)}%・${s[4]}</em></div>`).join('')}</div></div></div>
+<div class="card"><div class="ch" style="color:var(--green)"><span>${ICON.food}1食あたり</span><span class="t">3食の場合</span></div>
+<div class="meal"><div><span style="color:var(--pink);font-weight:700">P</span><b>約30g</b><span>手のひら1枚分の肉・魚＋卵か大豆</span></div><div><span style="color:var(--orange);font-weight:700">F</span><b>12〜15g</b><span>油を控えれば自然に収まる</span></div><div><span style="color:var(--blue);font-weight:700">C</span><b>約45g</b><span>ごはん100〜120g</span></div></div></div>
+<div class="sec">夜勤の日の流れ<small>時刻は目安</small></div>
+<div class="card">
+<div class="tl"><span class="tt">夜勤前</span><div><b>消化が良く腹持ちするもの</b><p>おにぎり＋サラダチキン＋味噌汁など</p></div></div>
+<div class="tl"><span class="tt">2〜4時</span><div><b>固形物は避ける</b><p>一番脂肪をため込みやすい時間帯。プロテイン・無調整豆乳・ゆで卵1個・具なしスープで空腹をしのぐ</p></div></div>
+<div class="tl"><span class="tt">帰宅後</span><div><b>飲んですぐ寝る</b><p>ドカ食いしてすぐ寝るのが一番太る。プロテインか温かいスープだけ</p></div></div>
+<div class="tl"><span class="tt">起床後</span><div><b>しっかり1食</b><p>タンパク質＋野菜中心の食事</p></div></div></div>
+<div class="sec">タンパク質が多い食品<small>タンパク質量</small></div>
+${lst([['サラダチキン 1個','約25g'],['鶏むね肉（皮なし）100g','約23g'],['鮭 1切れ','約18g'],['ツナ水煮 1缶','約12g'],['ギリシャヨーグルト 1個','約10g'],['プロテイン 1杯','15〜20g'],['無調整豆乳 200ml','約7g'],['納豆 1パック','約7g'],['卵 1個','約6g']])}
+<div class="sec">炭水化物の量<small>糖質量</small></div>
+${lst([['ごはん 120g（子ども茶碗1杯）','約44g'],['おにぎり 1個','約40g'],['食パン6枚切り 1枚','約27g'],['バナナ 1本','約22g']])}
+<div class="sec">脂質が多いもの<small>脂質量</small></div>
+${lst([['ポテトチップス 1袋','約21g'],['菓子パン 1個','15〜20g'],['唐揚げ 3個','約15g'],['マヨネーズ 大さじ1','約9g'],['高カカオチョコ 1枚','約2g']])}
+<p class="note">数値はおおよその目安です。プランのグラム数どおりに食べると約1,150〜1,450kcal。職場の差し入れは「食べない」と決めておき、どうしても欲しい時は高カカオ（72%以上）チョコを2〜3枚まで。</p></div>`;
+}
+const tag=e=>`<span class="tag" style="color:var(${TYPES[e.t][1]});background:color-mix(in srgb,var(${TYPES[e.t][1]}) 14%,transparent)">${TYPES[e.t][0]}</span>`;
+function libRow(e){const on=TR.items.some(x=>x.id===e.id),fv=TR.favs.includes(e.id);return `<div class="lr"><button class="star" data-a="fav" data-v="${e.id}" aria-pressed="${fv}" aria-label="${esc(e.n)}をお気に入り">${STAR}</button><button class="lrb" data-a="toggle" data-v="${e.id}" aria-label="${esc(e.n)}を${on?'メニューから外す':'メニューに追加'}"><span class="grow">${esc(e.n)}<span class="m">${tag(e)}${esc(e.how)}</span></span><span class="add ${on?'on':''}">${on?'✓':'+'}</span></button>${e.mine?`<button class="x" data-a="cdel" data-v="${e.id}" aria-label="${esc(e.n)}を削除">×</button>`:''}</div>`}
+function libHtml(){
+  const q=qText.trim().toLowerCase();
+  const match=e=>(flt==='all'||e.t===flt)&&(!favOnly||TR.favs.includes(e.id))&&(!q||e.n.toLowerCase().includes(q)||PARTS[e.p].includes(q)||TYPES[e.t][0].includes(q)||e.how.includes(q));
+  const all=Object.values(L);let h='';
+  const fav=TR.favs.map(id=>L[id]).filter(e=>e&&match(e));
+  if(fav.length&&!favOnly)h+=`<div class="acc open"><div class="acch">${STAR.replace('<svg','<svg style="width:18px;height:18px;fill:var(--orange);stroke:var(--orange)"')}<span style="flex:1">お気に入り</span><small>${fav.length}</small></div><div class="group">${fav.map(libRow).join('')}</div></div>`;
+  Object.keys(PARTS).forEach(p=>{const xs=all.filter(e=>e.p===p&&match(e));if(!xs.length)return;const open=!!q||favOnly||openP.has(p);
+    h+=`<div class="acc"><button class="acch" data-a="part" data-v="${p}" aria-expanded="${open}"><span class="chev">›</span><span style="flex:1">${PARTS[p]}</span><small>${xs.length}種目</small></button>${open?`<div class="group">${xs.map(libRow).join('')}</div>`:''}</div>`});
+  return h||'<div class="group"><div class="empty">見つかりませんでした。「種目を自分で追加」から登録できます</div></div>';
+}
+function vTrain(){
+  const t=today(),td=cleanDay(days[t]),ws=weekStart(t),cnt=Object.keys(days).filter(k=>k>=ws&&k<=t&&days[k].workout).length,doneIds=td.log.map(x=>x.id);
+  const ses=sessions();
+  const freq={};ses.filter(k=>k>=addDays(t,-60)).forEach(k=>days[k].log.forEach(x=>{freq[x.id]=(freq[x.id]||0)+1}));
+  const recent=Object.keys(freq).filter(id=>L[id]&&!TR.items.some(x=>x.id===id)).sort((a,b)=>freq[b]-freq[a]).slice(0,10);
+  const recBox=(key,title,sub)=>{const ids=LIB.filter(x=>x[8]===key).map(x=>x[0]);const all=ids.every(id=>TR.items.some(x=>x.id===id));return `<div class="rec"><div class="ch"><span>${ICON.fire}${title}</span><span class="t">おすすめ</span></div><p class="sub">${sub}</p><ol>${ids.map(id=>`<li>${L[id].n}　<span style="color:var(--mute)">${fmtItem(cleanItem({id}))}</span></li>`).join('')}</ol><button class="pill ${all?'':'o'}" data-a="addset" data-v="${key}" ${all?'disabled':''}>${all?'メニューに追加済み':'まとめてメニューに追加'}</button></div>`};
+  return `<div class="in">${head('筋トレ','今週 '+cnt+'回 / 目標2〜3回')}
+<div class="sec" style="margin-top:8px">マイメニュー<small>${TR.items.length?'今日 '+TR.items.filter(x=>doneIds.includes(x.id)).length+' / '+TR.items.length:''}</small></div>
+<div class="group">${TR.items.length?TR.items.map(it=>{const e=ex(it.id),dn=doneIds.includes(it.id),last=lastLog(it.id,t);return `<div class="mi"><button data-a="mdone" data-v="${it.id}" aria-pressed="${dn}" aria-label="${esc(e.n)}を今日やった" style="--c:var(--orange)"><span class="ck"></span></button><span class="nm">${esc(e.n)}<small>${TYPES[e.t][0]}・${PARTS[e.p]}${last?'　<em>前回 '+esc(fmtItem(last[1]))+'（'+esc(short(last[0]))+'）</em>':''}</small></span><button class="pill" data-a="mset" data-v="${it.id}">${esc(fmtItem(it))}</button><button class="x" data-a="mdel" data-v="${it.id}" aria-label="${esc(e.n)}を外す">×</button></div>`}).join(''):'<div class="empty">テンプレ・履歴・下のリストから種目を選ぶと、ここに並びます</div>'}</div>
+${TR.items.length?`<div class="acts"><button class="pill bl" data-a="tplsave">テンプレに保存</button><button class="pill" data-a="mclear">全部外す</button></div>`:''}
+<p class="note">回数・セット・重量はボタンをタップして変更。やった種目に丸をつけると、その日の履歴に残ります。</p>
+<div class="sec">テンプレート<small>タップで呼び出し</small></div>
+<div class="hs">${TR.tpls.map(tp=>`<button class="tpl" data-a="tpl" data-v="${tp.id}"><b>${esc(tp.name)}</b><span>${tp.items.length}種目</span><em>${esc(tp.items.slice(0,3).map(i=>ex(i.id).n).join('・'))}${tp.items.length>3?' ほか':''}</em></button>`).join('')}<button class="tpl add" data-a="tplsave" ${TR.items.length?'':'disabled'}>＋<span>今のメニューを<br>テンプレに保存</span></button></div>
+<div class="sec">履歴${ses.length>histN?`<button class="lnk" data-a="histmore">もっと見る</button>`:''}</div>
+${ses.length?`<div class="group">${ses.slice(0,histN).map(k=>`<button class="li" data-a="hist" data-v="${esc(k)}"><span class="grow">${esc(short(k))}<span class="m">${esc(days[k].log.map(x=>ex(x.id).n).join('・'))}</span></span><span class="r">${days[k].log.length}種目 ›</span></button>`).join('')}</div>`:'<div class="group"><div class="empty">マイメニューの種目に丸をつけると、ここに残ります</div></div>'}
+${recent.length?`<div class="sl" style="margin:4px 4px 6px">最近よくやる種目（タップで追加）</div><div class="chips">${recent.map(id=>`<button data-a="toggle" data-v="${id}">＋ ${esc(L[id].n)}</button>`).join('')}</div>`:''}
+<div class="sec">おすすめ</div>
+${recBox('gym','ジムの日の基本','プランのおすすめ。関節への負担が少なく安全')}${recBox('home','自宅サーキット','4種目を3周・種目間30秒休憩')}
+<div class="sec">種目を探す<button class="lnk" data-a="allparts">${openP.size>=Object.keys(PARTS).length?'すべて閉じる':'すべて開く'}</button></div>
+<input id="q" class="search" type="search" placeholder="種目を検索（例：ベンチ、もも裏、ケーブル）" value="${esc(qText)}" autocomplete="off" aria-label="種目を検索">
+<div class="chips"><button data-a="favonly" aria-pressed="${favOnly}">★ お気に入り</button>${[['all','すべて'],...Object.keys(TYPES).map(k=>[k,TYPES[k][0]])].map(f=>`<button data-a="flt" data-v="${f[0]}" aria-pressed="${flt===f[0]}">${f[1]}</button>`).join('')}</div>
+<div id="lib">${libHtml()}</div>
+<button class="btn" data-a="custom" style="margin-top:4px">＋ 種目を自分で追加</button>
+<p class="note">全${Object.keys(L).length}種目。☆でお気に入り、部位名で開閉。仕事でたくさん歩いているので長い有酸素運動は不要、週2〜3回・30〜40分の筋トレが中心です。</p></div>`;
+}
+function vLog(){
+  const t=today(),lw=latestUpTo(t),a7=avgRange(addDays(t,-7),t),p7=avgRange(addDays(t,-14),addDays(t,-7)),pl=planAt(t),pts=planPts();
+  const phases=[['1〜2ヶ月目','水分やむくみが抜けて一気に落ちる時期。食事を減らしすぎない'],['3〜4ヶ月目','必ず停滞期が来る。体重が動かなくても筋トレを続ける'],['5〜6ヶ月目','落ちにくい時期。週1回好きなものを食べる日を入れる']];
+  const recent=Object.keys(days).filter(isDate).sort().reverse().slice(0,14);
+  const ws=weekStart(t),wk=Object.keys(days).filter(k=>k>=ws&&k<=t),wo=wk.filter(k=>days[k].workout).length,wa=wk.length?wk.reduce((s,k)=>s+days[k].water,0)/wk.length*.25:null;
+  const old=avgRange(addDays(t,-37),addDays(t,-30));
+  const warn=a7!=null&&old!=null&&old-a7<1?`<div class="card warn"><b>この1ヶ月で1kg以上減っていません</b><p class="tip" style="color:var(--mute)">食事を徹底していても減らない、体調が極端に悪いときは、ホルモン異常などの可能性もあるので無理せず内科や肥満外来に相談を。</p></div>`:'';
+  return `<div class="in">${head('記録',fmtDate(t))}
+<div class="card"><div class="ch" style="color:var(--purple)"><span>${ICON.body}体重</span><span class="t">直近7日の平均</span></div>
+<div class="row2"><div><span class="val">${f1(a7)}</span><span class="unit">kg</span><div class="sub">${lw==null?'まだ記録がありません':'開始から '+sgn(lw-S.w0)+' kg'}</div></div></div>
+<div class="fig" id="fig"><svg id="chart" role="img" aria-label="体重の推移と計画"></svg></div>
+<div style="display:flex;gap:16px;font-size:13px;color:var(--mute);margin-top:4px"><span><i style="display:inline-block;width:14px;height:3px;background:var(--purple);vertical-align:middle;margin-right:5px;border-radius:2px"></i>実際</span><span><i style="display:inline-block;width:14px;border-top:2px dashed var(--mute);vertical-align:middle;margin-right:5px"></i>計画（${S.w0}→${S.goal}kg）</span></div>
+<div class="stats"><div><b>${f1(lw)}</b><span>最新（kg）</span></div><div><b>${a7!=null&&p7!=null?sgn(a7-p7):'—'}</b><span>前の7日との差</span></div><div><b>${f1(pl)}</b><span>今日の計画</span></div></div></div>
+${warn}
+<div class="sec">半年のロードマップ</div>
+<div class="card">${phases.map((p,i)=>`<div class="ph ${t>=pts[i][0]&&t<pts[i+1][0]?'now':''}"><b>${p[0]}</b><span class="w">${(Math.round(pts[i][1]*10)/10)} → ${(Math.round(pts[i+1][1]*10)/10)} kg</span><p>${p[1]}</p></div>`).join('')}</div>
+<div class="sec">今週<small>月曜はじまり</small></div>
+<div class="card"><div class="stats" style="margin:0"><div><b>${wo}<span style="font-size:15px;color:var(--mute)"> 回</span></b><span>筋トレ（目標2〜3回）</span></div><div><b>${wa==null?'—':wa.toFixed(1)+'<span style="font-size:15px;color:var(--mute)"> L</span>'}</b><span>水分の平均</span></div><div><b>${wk.filter(k=>days[k].weight!=null).length}<span style="font-size:15px;color:var(--mute)"> 日</span></b><span>体重を測った日</span></div></div></div>
+<div class="sec">最近の記録<small>タップで編集</small></div>
+${recent.length?`<div class="group">${recent.map(k=>{const d=days[k];return `<button class="li" data-a="goto" data-v="${esc(k)}"><span class="grow">${esc(short(k))}<span class="m">${esc(SHIFTS[d.shift])}・水分 ${(d.water*.25).toFixed(1)}L${d.workout?'・筋トレ':''}</span></span><span class="r">${f1(d.weight)} kg ›</span></button>`}).join('')}</div>`:'<div class="group"><div class="empty">「今日」で体重を入れると、ここに並びます</div></div>'}
+<button class="btn" data-a="copy">スプレッドシート用にコピー</button><p class="note" id="copied"></p></div>`;
+}
+let ro=null;
+function drawChart(){
+  const s=$('#chart');if(!s)return;const W=s.clientWidth,H=s.clientHeight;if(!W||!H)return;
+  const Lm=4,R=30,T=10,B=22,pts=planPts(),sr=series(),end=Math.max(diff(S.start,pts[3][0]),...sr.map(x=>diff(S.start,x[0])),7),beg=Math.min(0,...sr.map(x=>diff(S.start,x[0])));
+  const ws=sr.map(x=>x[1]);let lo=Math.floor((Math.min(S.goal,...ws)-1)/5)*5,hi=Math.ceil((Math.max(S.w0,...ws)+.5)/5)*5;
+  const X=d=>Lm+(W-Lm-R)*(diff(S.start,d)-beg)/(end-beg),Y=v=>T+(H-T-B)*(hi-v)/(hi-lo);
+  let g='';
+  for(let v=lo;v<=hi;v+=5){const y=Y(v).toFixed(1);g+=`<line x1="${Lm}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--sep)" ${v===lo?'':'stroke-dasharray="2 3"'}/><text x="${W-R+6}" y="${+y+4}">${v}</text>`}
+  for(let m=0;m<=6;m+=W<400?2:1){const d=addMonths(S.start,m),x=X(d);g+=`<text x="${x.toFixed(1)}" y="${H-5}" text-anchor="${m===0?'start':m===6?'end':'middle'}">${parse(d).getMonth()+1}月</text>`}
+  g+=`<polyline points="${pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="var(--mute)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  const tx=X(today());if(tx>=Lm&&tx<=W-R)g+=`<line x1="${tx.toFixed(1)}" x2="${tx.toFixed(1)}" y1="${T}" y2="${H-B}" stroke="var(--sep)"/>`;
+  if(sr.length){g+=`<polyline points="${sr.map(x=>X(x[0]).toFixed(1)+','+Y(x[1]).toFixed(1)).join(' ')}" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;const l=sr[sr.length-1];g+=`<circle cx="${X(l[0]).toFixed(1)}" cy="${Y(l[1]).toFixed(1)}" r="5" fill="var(--purple)" stroke="var(--card)" stroke-width="2"/>`}
+  s.innerHTML=g;
+}
+
+function render(){
+  const nav=$('#nav');if(mode!=='app'){nav.hidden=true;view.innerHTML=gate();if(ro){ro.disconnect();ro=null}return}nav.hidden=false;
+  document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false'));
+  view.innerHTML=tab==='food'?vFood():tab==='train'?vTrain():tab==='log'?vLog():vToday();
+  if(ro){ro.disconnect();ro=null}
+  if(tab==='log'){ro=new ResizeObserver(drawChart);ro.observe($('#fig'))}
+}
+function soft(anchor){
+  if(!sheet.hidden||mode!=='app')return;const ae=document.activeElement;if(ae&&ae.tagName==='INPUT'&&view.contains(ae)){pend=true;return}
+  let top=null;if(anchor&&anchor.isConnected)top=[anchor.dataset.a,anchor.dataset.v,[...view.querySelectorAll(`[data-a="${anchor.dataset.a}"][data-v="${anchor.dataset.v}"]`)].indexOf(anchor),anchor.getBoundingClientRect().top];
+  const y=window.scrollY;render();window.scrollTo(0,y);
+  if(top&&top[2]>=0){const el=view.querySelectorAll(`[data-a="${top[0]}"][data-v="${top[1]}"]`)[top[2]];if(el)window.scrollBy(0,el.getBoundingClientRect().top-top[3])}
+}
+view.addEventListener('focusout',()=>{if(pend){pend=false;setTimeout(()=>soft(),0)}});
+view.addEventListener('input',e=>{if(e.target.id==='q'){qText=e.target.value;const lib=$('#lib');if(lib)lib.innerHTML=libHtml()}});
+function saveOpen(){try{localStorage.setItem('gp-open',JSON.stringify([...openP]))}catch(e){}}
+function twice(b,label){if(b.dataset.c==='1')return true;b.dataset.c='1';b.textContent=label;setTimeout(()=>{if(b.isConnected)delete b.dataset.c},4000);return false}
+
+document.addEventListener('click',e=>{
+  const tb=e.target.closest('nav [data-tab]');if(tb){go(tb.dataset.tab);return}
+  const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const a=b.dataset.a,v=b.dataset.v;
+  if(a==='sx')closeSheet();
+  else if(a==='sok'&&sheetOk)closeSheetOk(sheetOk);
+  else if(a==='settings')openSettings();
+  else if(a==='theme'){setTheme(v);sheet.querySelectorAll('[data-a=theme]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v))}
+  else if(a==='pw0'||a==='pgoal'){const k=a==='pw0'?'w0':'goal';sheetBack=null;sheet.classList.remove('on');picker(a==='pw0'?'開始体重':'目標体重',weightCols(S[k]),vv=>{const w=toW(vv);if(k==='goal'?w>=S.w0:w<=S.goal){status('目標体重は開始体重より小さくしてください');return}S[k]=w;saveSet();render()},openSettings)}
+  else if(a==='login')login();
+  else if(a==='reload')location.reload();
+  else if(a==='logout'){if(mode==='app'&&!twice(b,'もう一度押すとログアウト'))return;closeSheetQuiet();fb&&fb.AU.signOut(fb.auth)}
+  else if(a==='bkdl'){download('減量プラン手帳_バックアップ_'+today()+'.json',JSON.stringify({app:'gp2',version:1,exportedAt:new Date().toISOString(),days,S,TR}));status('バックアップを保存しました')}
+  else if(a==='prev'){cur=addDays(cur,-1);render()}
+  else if(a==='next'){if(cur<today()){cur=addDays(cur,1);render()}}
+  else if(a==='today'){cur=today();render()}
+  else if(a==='weight')pickWeight();
+  else if(a==='wdel'){setField('weight',null);status('体重を消しました')}
+  else if(a==='shift'&&SHIFTS[v]){const d=cleanDay(days[cur]);if(d.shift!==v){d.shift=v;d.rule=false;days[cur]=d;saveDay(cur);soft()}}
+  else if(a==='cup'){const i=+v,d=cleanDay(days[cur]);setField('water',d.water===i+1?i:i+1)}
+  else if(a==='chk'){const d=cleanDay(days[cur]);setField(v,!d[v])}
+  else if(a==='goto'&&isDate(v)){cur=v;go('today')}
+  /* training */
+  else if(a==='flt'){flt=v;soft(b)}
+  else if(a==='favonly'){favOnly=!favOnly;soft(b)}
+  else if(a==='part'&&PARTS[v]){if(openP.has(v))openP.delete(v);else openP.add(v);saveOpen();soft(b)}
+  else if(a==='allparts'){if(openP.size>=Object.keys(PARTS).length)openP.clear();else openP=new Set(Object.keys(PARTS));saveOpen();soft(b)}
+  else if(a==='toggle'&&L[v]){const i=TR.items.findIndex(x=>x.id===v);if(i>=0)TR.items.splice(i,1);else{addItems([{id:v}]);status(L[v].n+'を追加しました')}saveTR();soft(b)}
+  else if(a==='fav'&&L[v]){TR.favs=TR.favs.includes(v)?TR.favs.filter(x=>x!==v):[...TR.favs,v];saveTR();soft(b)}
+  else if(a==='addset'){addItems(LIB.filter(x=>x[8]===v).map(x=>({id:x[0]})));window.scrollTo(0,0);render();status('メニューに追加しました')}
+  else if(a==='mset')pickItem(v);
+  else if(a==='mdel'){TR.items=TR.items.filter(x=>x.id!==v);saveTR();soft()}
+  else if(a==='mclear'){if(!twice(b,'もう一度押すと全部外す'))return;TR.items=[];saveTR();soft()}
+  else if(a==='mdone'&&known(v)){const t=today(),d=cleanDay(days[t]),it=TR.items.find(x=>x.id===v);if(d.log.some(x=>x.id===v))d.log=d.log.filter(x=>x.id!==v);else if(it)d.log.push({...it});if(d.log.length)d.workout=true;days[t]=d;saveDay(t);soft(b)}
+  else if(a==='tplsave'){if(TR.items.length)openTplSave(TR.items)}
+  else if(a==='tname'){const el=$('#tn');if(el)el.value=v}
+  else if(a==='tplok')saveTpl();
+  else if(a==='tpl')openTpl(v);
+  else if(a==='tpluse'||a==='tpladd'){const t=TR.tpls.find(x=>x.id===v);if(t){addItems(t.items,a==='tpluse');closeSheet();window.scrollTo(0,0);status('「'+t.name+'」を'+(a==='tpluse'?'呼び出しました':'追加しました'))}}
+  else if(a==='tplover'){const t=TR.tpls.find(x=>x.id===v);if(t&&TR.items.length){if(!twice(b,'もう一度押すと上書き'))return;t.items=cleanItems(TR.items);saveTR();closeSheet();status('「'+t.name+'」を上書きしました')}}
+  else if(a==='tpldel'){if(!twice(b,'もう一度押すと削除'))return;TR.tpls=TR.tpls.filter(x=>x.id!==v);saveTR();closeSheet();status('テンプレを削除しました')}
+  else if(a==='hist'&&days[v])openHist(v);
+  else if(a==='histmore'){histN+=10;soft()}
+  else if((a==='hreplay'||a==='hadd')&&days[v]){addItems(days[v].log,a==='hreplay');closeSheet();window.scrollTo(0,0);status(a==='hreplay'?'メニューを再現しました':'メニューに追加しました')}
+  else if(a==='hsave'&&days[v]){const items=days[v].log;sheet.classList.remove('on');openTplSave(items)}
+  else if(a==='custom')openCustom();
+  else if(a==='cd'){cDraft[b.dataset.k]=v;sheet.querySelectorAll(`[data-a=cd][data-k="${b.dataset.k}"]`).forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v))}
+  else if(a==='cadd')addCustom();
+  else if(a==='cdel'&&L[v]&&L[v].mine){if(!twice(b,'削除'))return;TR.custom=TR.custom.filter(x=>x.id!==v);TR.items=TR.items.filter(x=>x.id!==v);TR.favs=TR.favs.filter(x=>x!==v);TR.tpls.forEach(t=>{t.items=t.items.filter(x=>x.id!==v)});buildL();saveTR();soft()}
+  else if(a==='copy'){const ks=Object.keys(days).filter(isDate).sort();const txt=['日付\t勤務\t体重\t水分(L)\t睡眠\tタンパク質\tお菓子なし\t勤務ルール\t筋トレ\tやった種目'].concat(ks.map(k=>{const d=days[k];return [k,SHIFTS[d.shift],d.weight??'',(d.water*.25).toFixed(2),...['sleep','protein','sweets','rule','workout'].map(x=>d[x]?'○':''),d.log.map(x=>ex(x.id).n+' '+fmtItem(x)).join(' / ')].join('\t')})).join('\n');const out=$('#copied'),ng=()=>{out.textContent='コピーできませんでした。'};try{navigator.clipboard.writeText(txt).then(()=>{out.textContent=ks.length+'日分をコピーしました。スプレッドシートのA1に貼り付けてください。'},ng)}catch(err){ng()}}
+});
+document.addEventListener('change',e=>{if(e.target.id==='bkf'&&e.target.files&&e.target.files[0]){const f=e.target.files[0];f.text().then(t=>{const n=restore(JSON.parse(t));closeSheet();status(n+'日分の記録を復元しました')}).catch(err=>status('復元できませんでした：'+String(err&&err.message||err).slice(0,40),true));return}
+  if(e.target.id==='sd'){const v=e.target.value;if(isDate(v)){S.start=v;saveSet();render();status('開始日を変更しました')}}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!sheet.hidden)closeSheet()});
+const TABS=['today','food','train','log'];
+function go(t){tab=t;if(location.hash!=='#'+t){try{history.replaceState(null,'','#'+t)}catch(err){try{location.hash=t}catch(e2){}}}render();window.scrollTo(0,0)}
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(TABS.includes(h)&&h!==tab){tab=h;render()}});
+{const h=location.hash.slice(1);if(TABS.includes(h))tab=h}
+
+buildL();render();
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let dayNow=today();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){const t=today();if(t!==dayNow){if(cur===dayNow)cur=t;dayNow=t;soft()}}else flushAll()});
+window.addEventListener('pagehide',flushAll);
+boot();
+}
+</script>
+</body>
+</html>
